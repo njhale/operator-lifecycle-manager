@@ -1,358 +1,21 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    openshift.io/node-selector: ""
+  labels:
+    openshift.io/cluster-monitoring: "true"
+    openshift.io/run-level: "1"
+  name: openshift-operator-lifecycle-manager
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: olm
-  
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: operators
-  
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: system:controller:operator-lifecycle-manager
-rules:
-- apiGroups: ["*"]
-  resources: ["*"]
-  verbs: ["*"]
-- nonResourceURLs: ["*"]
-  verbs: ["*"]
----
-kind: ServiceAccount
-apiVersion: v1
-metadata:
-  name: olm-operator-serviceaccount
-  namespace: olm
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: olm-operator-binding-olm
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:controller:operator-lifecycle-manager
-subjects:
-- kind: ServiceAccount
-  name: olm-operator-serviceaccount
-  namespace: olm
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: olm-operator
-  namespace: olm
+  annotations:
+    openshift.io/node-selector: ""
   labels:
-    app: olm-operator
-spec:
-  strategy:
-    type: RollingUpdate
-  replicas: 1
-  selector:
-    matchLabels:
-      app: olm-operator
-  template:
-    metadata:
-      labels:
-        app: olm-operator
-    spec:
-      serviceAccountName: olm-operator-serviceaccount
-      containers:
-        - name: olm-operator
-          command:
-          - /bin/olm
-          args:
-          - -namespace
-          - $(OPERATOR_NAMESPACE)
-          - -writeStatusName
-          - ""
-          image: quay.io/operator-framework/olm@sha256:91ac5bf350192e063a3c1be994827f67e254997939eda3d471253777cc840c45
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8080
-            - containerPort: 8081
-              name: metrics
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
-          terminationMessagePolicy: FallbackToLogsOnError
-          env:
-        
-          - name: OPERATOR_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          - name: OPERATOR_NAME
-            value: olm-operator
-          resources:
-            requests:
-              cpu: 10m
-              memory: 160Mi
-            
-          
-      
-      nodeSelector:
-        beta.kubernetes.io/os: linux
-        
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: catalog-operator
-  namespace: olm
-  labels:
-    app: catalog-operator
-spec:
-  strategy:
-    type: RollingUpdate
-  replicas: 1
-  selector:
-    matchLabels:
-      app: catalog-operator
-  template:
-    metadata:
-      labels:
-        app: catalog-operator
-    spec:
-      serviceAccountName: olm-operator-serviceaccount
-      containers:
-        - name: catalog-operator
-          command:
-          - /bin/catalog
-          args:
-          - '-namespace'
-          - olm
-          - -configmapServerImage=quay.io/operator-framework/configmap-operator-registry:latest
-          image: quay.io/operator-framework/olm@sha256:91ac5bf350192e063a3c1be994827f67e254997939eda3d471253777cc840c45
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8080
-            - containerPort: 8081
-              name: metrics
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
-          terminationMessagePolicy: FallbackToLogsOnError
-          env:
-          
-          resources:
-            requests:
-              cpu: 10m
-              memory: 80Mi
-            
-          
-      
-      nodeSelector:
-        beta.kubernetes.io/os: linux
-        
----
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: aggregate-olm-edit
-  labels:
-    rbac.authorization.k8s.io/aggregate-to-admin: "true"
-    rbac.authorization.k8s.io/aggregate-to-edit: "true"
-rules:
-- apiGroups: ["operators.coreos.com"]
-  resources: ["subscriptions"]
-  verbs: ["create", "update", "patch", "delete"]
-- apiGroups: ["operators.coreos.com"]
-  resources: ["clusterserviceversions", "catalogsources", "installplans", "subscriptions"]
-  verbs: ["delete"]
----
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: aggregate-olm-view
-  labels:
-    rbac.authorization.k8s.io/aggregate-to-admin: "true"
-    rbac.authorization.k8s.io/aggregate-to-edit: "true"
-    rbac.authorization.k8s.io/aggregate-to-view: "true"
-rules:
-- apiGroups: ["operators.coreos.com"]
-  resources: ["clusterserviceversions", "catalogsources", "installplans", "subscriptions", "operatorgroups"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["packages.operators.coreos.com"]
-  resources: ["packagemanifests", "packagemanifests/icon"]
-  verbs: ["get", "list", "watch"]
----
-apiVersion: operators.coreos.com/v1
-kind: OperatorGroup
-metadata:
-  name: global-operators
-  namespace: operators
----
-apiVersion: operators.coreos.com/v1
-kind: OperatorGroup
-metadata:
-  name: olm-operators
-  namespace: olm
-spec:
-  targetNamespaces:
-    - olm
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: ClusterServiceVersion
-metadata:
-  name: packageserver
-  namespace: olm
-  labels:
-    olm.version: 0.12.0
-spec:
-  displayName: Package Server
-  description: Represents an Operator package that is available from a given CatalogSource which will resolve to a ClusterServiceVersion.
-  minKubeVersion: 1.11.0
-  keywords: ['packagemanifests', 'olm', 'packages']
-  maintainers:
-  - name: Red Hat
-    email: openshift-operators@redhat.com
-  provider:
-    name: Red Hat
-  links:
-  - name: Package Server
-    url: https://github.com/operator-framework/operator-lifecycle-manager/tree/master/pkg/package-server
-  installModes:
-  - type: OwnNamespace
-    supported: true
-  - type: SingleNamespace
-    supported: true
-  - type: MultiNamespace
-    supported: true
-  - type: AllNamespaces
-    supported: true
-  install:
-    strategy: deployment
-    spec:
-      clusterPermissions:
-      - serviceAccountName: olm-operator-serviceaccount
-        rules:
-        - apiGroups:
-            - authorization.k8s.io
-          resources:
-            - subjectaccessreviews
-          verbs:
-            - create
-            - get
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - "operators.coreos.com"
-          resources:
-          - catalogsources
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - "packages.operators.coreos.com"
-          resources:
-          - packagemanifests
-          verbs:
-          - get
-          - list
-      deployments:
-      - name: packageserver
-        spec:
-          strategy:
-            type: RollingUpdate
-          replicas: 2
-          selector:
-            matchLabels:
-              app: packageserver
-          template:
-            metadata:
-              labels:
-                app: packageserver
-            spec:
-              serviceAccountName: olm-operator-serviceaccount
-              nodeSelector:
-                beta.kubernetes.io/os: linux
-                
-              containers:
-              - name: packageserver
-                command:
-                - /bin/package-server
-                - -v=4
-                - --secure-port
-                - "5443"
-                - --global-namespace
-                - olm
-                image: quay.io/operator-framework/olm@sha256:91ac5bf350192e063a3c1be994827f67e254997939eda3d471253777cc840c45
-                imagePullPolicy: Always
-                ports:
-                - containerPort: 5443
-                livenessProbe:
-                  httpGet:
-                    scheme: HTTPS
-                    path: /healthz
-                    port: 5443
-                readinessProbe:
-                  httpGet:
-                    scheme: HTTPS
-                    path: /healthz
-                    port: 5443
-                terminationMessagePolicy: FallbackToLogsOnError
-                resources:
-                  requests:
-                    cpu: 10m
-                    memory: 50Mi
-                  
-  maturity: alpha
-  version: 0.12.0
-  apiservicedefinitions:
-    owned:
-    - group: packages.operators.coreos.com
-      version: v1
-      kind: PackageManifest
-      name: packagemanifests
-      displayName: PackageManifest
-      description: A PackageManifest is a resource generated from existing CatalogSources and their ConfigMaps
-      deploymentName: packageserver
-      containerPort: 5443
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: operatorhubio-catalog
-  namespace: olm
-spec:
-  sourceType: grpc
-  image: quay.io/operator-framework/upstream-community-operators:latest
-  displayName: Community Operators
-  publisher: OperatorHub.io
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: olm
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: operators
+    openshift.io/run-level: "1"
+  name: openshift-operators
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -1831,7 +1494,24 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: olm-operator-serviceaccount
-  namespace: olm
+  namespace: openshift-operator-lifecycle-manager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: operator-lifecycle-manager-metrics
+  namespace: openshift-operator-lifecycle-manager
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - endpoints
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -1908,6 +1588,20 @@ rules:
   - '*'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: operator-lifecycle-manager-metrics
+  namespace: openshift-operator-lifecycle-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: operator-lifecycle-manager-metrics
+subjects:
+- kind: ServiceAccount
+  name: prometheus-k8s
+  namespace: openshift-monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: olm-operator-binding
@@ -1918,7 +1612,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: olm-operator-serviceaccount
-  namespace: olm
+  namespace: openshift-operator-lifecycle-manager
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1926,7 +1620,7 @@ metadata:
   labels:
     app: catalog-operator
   name: catalog-operator
-  namespace: olm
+  namespace: openshift-operator-lifecycle-manager
 spec:
   replicas: 1
   selector:
@@ -1942,10 +1636,18 @@ spec:
       containers:
       - args:
         - --namespace
-        - operators
+        - openshift-marketplace
+        - --writeStatusName
+        - operator-lifecycle-manager-catalog
+        - --tls-cert
+        - /var/run/secrets/serving-cert/tls.crt
+        - --tls-key
+        - /var/run/secrets/serving-cert/tls.key
         command:
         - /bin/catalog
         env:
+        - name: RELEASE_VERSION
+          value: 0.0.1-snapshot
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
@@ -1972,7 +1674,30 @@ spec:
             cpu: 10m
             memory: 80Mi
         terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /var/run/secrets/serving-cert
+          name: serving-cert
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+        node-role.kubernetes.io/master: ""
+      priorityClassName: system-cluster-critical
       serviceAccountName: olm-operator-serviceaccount
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      - effect: NoExecute
+        key: node.kubernetes.io/unreachable
+        operator: Exists
+        tolerationSeconds: 120
+      - effect: NoExecute
+        key: node.kubernetes.io/not-ready
+        operator: Exists
+        tolerationSeconds: 120
+      volumes:
+      - name: serving-cert
+        secret:
+          secretName: catalog-operator-serving-cert
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1980,7 +1705,7 @@ metadata:
   labels:
     app: olm-operator
   name: olm-operator
-  namespace: olm
+  namespace: openshift-operator-lifecycle-manager
 spec:
   replicas: 1
   selector:
@@ -1997,9 +1722,19 @@ spec:
       - args:
         - --namespace
         - $(POD_NAMESPACE)
+        - --writeStatusName
+        - operator-lifecycle-manager
+        - --writePackageServerStatusName
+        - operator-lifecycle-manager-packageserver
+        - --tls-cert
+        - /var/run/secrets/serving-cert/tls.crt
+        - --tls-key
+        - /var/run/secrets/serving-cert/tls.key
         command:
         - /bin/olm
         env:
+        - name: RELEASE_VERSION
+          value: 0.0.1-snapshot
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
@@ -2028,30 +1763,142 @@ spec:
             cpu: 10m
             memory: 80Mi
         terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /var/run/secrets/serving-cert
+          name: serving-cert
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+        node-role.kubernetes.io/master: ""
+      priorityClassName: system-cluster-critical
       serviceAccountName: olm-operator-serviceaccount
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      - effect: NoExecute
+        key: node.kubernetes.io/unreachable
+        operator: Exists
+        tolerationSeconds: 120
+      - effect: NoExecute
+        key: node.kubernetes.io/not-ready
+        operator: Exists
+        tolerationSeconds: 120
+      volumes:
+      - name: serving-cert
+        secret:
+          secretName: catalog-operator-serving-cert
+---
+apiVersion: config.openshift.io/v1
+kind: ClusterOperator
+metadata:
+  name: operator-lifecycle-manager-catalog
+  namespace: openshift-operator-lifecycle-manager
+status:
+  versions:
+  - name: operator
+    version: 0.0.1-snapshot
+---
+apiVersion: config.openshift.io/v1
+kind: ClusterOperator
+metadata:
+  name: operator-lifecycle-manager-packageserver
+  namespace: openshift-operator-lifecycle-manager
+status:
+  versions:
+  - name: operator
+    version: 0.0.1-snapshot
+---
+apiVersion: config.openshift.io/v1
+kind: ClusterOperator
+metadata:
+  name: operator-lifecycle-manager
+  namespace: openshift-operator-lifecycle-manager
+status:
+  versions:
+  - name: operator
+    version: 0.0.1-snapshot
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: catalog-operator
+  name: catalog-operator
+  namespace: openshift-operator-lifecycle-manager
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: etcd_(debugging|disk|request|server).*
+      sourceLabels:
+      - __name__
+    port: https-metrics
+    scheme: https
+    tlsConfig:
+      caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+      serverName: catalog-operator-metrics.openshift-operator-lifecycle-manager.svc
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+    - openshift-operator-lifecycle-manager
+  selector:
+    matchLabels:
+      app: catalog-operator
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: olm-operator
+  name: olm-operator
+  namespace: openshift-operator-lifecycle-manager
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: etcd_(debugging|disk|request|server).*
+      sourceLabels:
+      - __name__
+    port: https-metrics
+    scheme: https
+    tlsConfig:
+      caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+      serverName: olm-operator-metrics.openshift-operator-lifecycle-manager.svc
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+    - openshift-operator-lifecycle-manager
+  selector:
+    matchLabels:
+      app: olm-operator
 ---
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: olm-operators
-  namespace: olm
+  namespace: openshift-operator-lifecycle-manager
 spec:
   targetNamespaces:
-  - olm
+  - openshift-operator-lifecycle-manager
 ---
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: global-operators
-  namespace: operators
+  namespace: openshift-operators
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   labels:
+    olm.clusteroperator.name: operator-lifecycle-manager-packagerserver
     olm.version: 0.12.0
   name: packageserver
-  namespace: olm
+  namespace: openshift-operator-lifecycle-manager
 spec:
   apiservicedefinitions:
     owned:
@@ -2103,18 +1950,8 @@ spec:
           - list
         serviceAccountName: olm-operator-serviceaccount
       deployments:
-      - name: packageserver
         spec:
-          replicas: 2
-          selector:
-            matchLabels:
-              app: packageserver
-          strategy:
-            type: RollingUpdate
           template:
-            metadata:
-              labels:
-                app: packageserver
             spec:
               containers:
               - args:
@@ -2122,7 +1959,7 @@ spec:
                 - --secure-port
                 - "5443"
                 - --global-namespace
-                - operators
+                - openshift-marketplace
                 command:
                 - /bin/package-server
                 env:
@@ -2146,7 +1983,22 @@ spec:
                     port: 5443
                     scheme: HTTPS
                 terminationMessagePolicy: FallbackToLogsOnError
-              serviceAccountName: olm-operator-serviceaccount
+              nodeSelector:
+                beta.kubernetes.io/os: linux
+                node-role.kubernetes.io/master: ""
+              priorityClassName: system-cluster-critical
+              tolerations:
+              - effect: NoSchedule
+                key: node-role.kubernetes.io/master
+                operator: Exists
+              - effect: NoExecute
+                key: node.kubernetes.io/unreachable
+                operator: Exists
+                tolerationSeconds: 120
+              - effect: NoExecute
+                key: node.kubernetes.io/not-ready
+                operator: Exists
+                tolerationSeconds: 120
     strategy: deployment
   installModes:
   - supported: true

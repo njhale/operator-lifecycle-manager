@@ -1,0 +1,10 @@
+bases:
+- ../bases/default
+resources:
+- crs.yaml
+- ns.yaml
+patchesStrategicMerge:
+- crs.patch.yaml
+images:
+- name: quay.io/operator-framework/olm
+  digest: sha256:91ac5bf350192e063a3c1be994827f67e254997939eda3d471253777cc840c45

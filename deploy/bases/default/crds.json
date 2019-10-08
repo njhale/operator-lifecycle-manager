@@ -1,0 +1,550 @@
+{
+  "definitions": {
+    "com.coreos.operators.v1.OperatorGroup": {
+      "type": "object",
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "OperatorGroup",
+          "version": "v1"
+        }
+      ]
+    },
+    "com.coreos.operators.v1.OperatorGroupList": {
+      "description": "OperatorGroupList is a list of OperatorGroup",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+          "type": "string"
+        },
+        "items": {
+          "description": "List of operatorgroups. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/com.coreos.operators.v1.OperatorGroup"
+          }
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "metadata": {
+          "description": "ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.",
+          "type": "object",
+          "properties": {
+            "continue": {
+              "description": "continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.",
+              "type": "string"
+            },
+            "remainingItemCount": {
+              "description": "remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.",
+              "type": "integer",
+              "format": "int64"
+            },
+            "resourceVersion": {
+              "description": "String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+              "type": "string"
+            },
+            "selfLink": {
+              "description": "selfLink is a URL representing this object. Populated by the system. Read-only.\n\nDEPRECATED Kubernetes will stop propagating this field in 1.20 release and the field is planned to be removed in 1.21 release.",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "OperatorGroupList",
+          "version": "v1"
+        }
+      ]
+    },
+    "com.coreos.operators.v1alpha1.CatalogSource": {
+      "type": "object",
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "CatalogSource",
+          "version": "v1alpha1"
+        }
+      ]
+    },
+    "com.coreos.operators.v1alpha1.CatalogSourceList": {
+      "description": "CatalogSourceList is a list of CatalogSource",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+          "type": "string"
+        },
+        "items": {
+          "description": "List of catalogsources. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/com.coreos.operators.v1alpha1.CatalogSource"
+          }
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "metadata": {
+          "description": "ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.",
+          "type": "object",
+          "properties": {
+            "continue": {
+              "description": "continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.",
+              "type": "string"
+            },
+            "remainingItemCount": {
+              "description": "remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.",
+              "type": "integer",
+              "format": "int64"
+            },
+            "resourceVersion": {
+              "description": "String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+              "type": "string"
+            },
+            "selfLink": {
+              "description": "selfLink is a URL representing this object. Populated by the system. Read-only.\n\nDEPRECATED Kubernetes will stop propagating this field in 1.20 release and the field is planned to be removed in 1.21 release.",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "CatalogSourceList",
+          "version": "v1alpha1"
+        }
+      ]
+    },
+    "com.coreos.operators.v1alpha1.ClusterServiceVersion": {
+      "type": "object",
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "ClusterServiceVersion",
+          "version": "v1alpha1"
+        }
+      ]
+    },
+    "com.coreos.operators.v1alpha1.ClusterServiceVersionList": {
+      "description": "ClusterServiceVersionList is a list of ClusterServiceVersion",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+          "type": "string"
+        },
+        "items": {
+          "description": "List of clusterserviceversions. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/com.coreos.operators.v1alpha1.ClusterServiceVersion"
+          }
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "metadata": {
+          "description": "ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.",
+          "type": "object",
+          "properties": {
+            "continue": {
+              "description": "continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.",
+              "type": "string"
+            },
+            "remainingItemCount": {
+              "description": "remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.",
+              "type": "integer",
+              "format": "int64"
+            },
+            "resourceVersion": {
+              "description": "String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+              "type": "string"
+            },
+            "selfLink": {
+              "description": "selfLink is a URL representing this object. Populated by the system. Read-only.\n\nDEPRECATED Kubernetes will stop propagating this field in 1.20 release and the field is planned to be removed in 1.21 release.",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "ClusterServiceVersionList",
+          "version": "v1alpha1"
+        }
+      ]
+    },
+    "com.coreos.operators.v1alpha1.InstallPlan": {
+      "type": "object",
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "InstallPlan",
+          "version": "v1alpha1"
+        }
+      ]
+    },
+    "com.coreos.operators.v1alpha1.InstallPlanList": {
+      "description": "InstallPlanList is a list of InstallPlan",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+          "type": "string"
+        },
+        "items": {
+          "description": "List of installplans. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/com.coreos.operators.v1alpha1.InstallPlan"
+          }
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "metadata": {
+          "description": "ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.",
+          "type": "object",
+          "properties": {
+            "continue": {
+              "description": "continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.",
+              "type": "string"
+            },
+            "remainingItemCount": {
+              "description": "remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.",
+              "type": "integer",
+              "format": "int64"
+            },
+            "resourceVersion": {
+              "description": "String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+              "type": "string"
+            },
+            "selfLink": {
+              "description": "selfLink is a URL representing this object. Populated by the system. Read-only.\n\nDEPRECATED Kubernetes will stop propagating this field in 1.20 release and the field is planned to be removed in 1.21 release.",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "InstallPlanList",
+          "version": "v1alpha1"
+        }
+      ]
+    },
+    "com.coreos.operators.v1alpha1.Subscription": {
+      "type": "object",
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "Subscription",
+          "version": "v1alpha1"
+        }
+      ]
+    },
+    "com.coreos.operators.v1alpha1.SubscriptionList": {
+      "description": "SubscriptionList is a list of Subscription",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+          "type": "string"
+        },
+        "items": {
+          "description": "List of subscriptions. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/com.coreos.operators.v1alpha1.Subscription"
+          }
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "metadata": {
+          "description": "ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.",
+          "type": "object",
+          "properties": {
+            "continue": {
+              "description": "continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.",
+              "type": "string"
+            },
+            "remainingItemCount": {
+              "description": "remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.",
+              "type": "integer",
+              "format": "int64"
+            },
+            "resourceVersion": {
+              "description": "String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+              "type": "string"
+            },
+            "selfLink": {
+              "description": "selfLink is a URL representing this object. Populated by the system. Read-only.\n\nDEPRECATED Kubernetes will stop propagating this field in 1.20 release and the field is planned to be removed in 1.21 release.",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "SubscriptionList",
+          "version": "v1alpha1"
+        }
+      ]
+    },
+    "com.coreos.operators.v1alpha2.OperatorGroup": {
+      "type": "object",
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "OperatorGroup",
+          "version": "v1alpha2"
+        }
+      ]
+    },
+    "com.coreos.operators.v1alpha2.OperatorGroupList": {
+      "description": "OperatorGroupList is a list of OperatorGroup",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+          "type": "string"
+        },
+        "items": {
+          "description": "List of operatorgroups. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/com.coreos.operators.v1alpha2.OperatorGroup"
+          }
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "metadata": {
+          "description": "ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.",
+          "type": "object",
+          "properties": {
+            "continue": {
+              "description": "continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.",
+              "type": "string"
+            },
+            "remainingItemCount": {
+              "description": "remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.",
+              "type": "integer",
+              "format": "int64"
+            },
+            "resourceVersion": {
+              "description": "String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+              "type": "string"
+            },
+            "selfLink": {
+              "description": "selfLink is a URL representing this object. Populated by the system. Read-only.\n\nDEPRECATED Kubernetes will stop propagating this field in 1.20 release and the field is planned to be removed in 1.21 release.",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "OperatorGroupList",
+          "version": "v1alpha2"
+        }
+      ]
+    },
+    "com.coreos.operators.v2alpha1.Operator": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "metadata": {
+          "description": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+          "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+        },
+        "status": {
+          "type": "object",
+          "required": [
+            "components"
+          ],
+          "properties": {
+            "components": {
+              "description": "components tracks the resources that compose an operator.",
+              "type": "object",
+              "required": [
+                "labelSelector"
+              ],
+              "properties": {
+                "labelSelector": {
+                  "description": "labelSelector is a label query over a set of resources used to select the operator's components",
+                  "type": "object",
+                  "properties": {
+                    "matchExpressions": {
+                      "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+                      "type": "array",
+                      "items": {
+                        "description": "A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                        "type": "object",
+                        "required": [
+                          "operator"
+                        ],
+                        "properties": {
+                          "key": {
+                            "description": "key is the label key that the selector applies to.",
+                            "type": "string"
+                          },
+                          "operator": {
+                            "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+                            "type": "string"
+                          },
+                          "values": {
+                            "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "matchLabels": {
+                      "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is key, the operator is In, and the values array contains only value. The requirements are ANDed.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "refs": {
+                  "description": "Refs are a set of references to the operator's component resources, selected with LabelSelector.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "apiVersion": {
+                        "description": "API version of the referent.",
+                        "type": "string"
+                      },
+                      "kind": {
+                        "description": "Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names",
+                        "type": "string"
+                      },
+                      "namespace": {
+                        "description": "Namespace of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+                        "type": "string"
+                      },
+                      "resourceVersion": {
+                        "description": "Specific resourceVersion to which this reference is made, if any. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+                        "type": "string"
+                      },
+                      "uid": {
+                        "description": "UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids",
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "Operator",
+          "version": "v2alpha1"
+        }
+      ]
+    },
+    "com.coreos.operators.v2alpha1.OperatorList": {
+      "description": "OperatorList is a list of Operator",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+          "type": "string"
+        },
+        "items": {
+          "description": "List of operators. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/com.coreos.operators.v2alpha1.Operator"
+          }
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "metadata": {
+          "description": "ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.",
+          "type": "object",
+          "properties": {
+            "continue": {
+              "description": "continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.",
+              "type": "string"
+            },
+            "remainingItemCount": {
+              "description": "remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.",
+              "type": "integer",
+              "format": "int64"
+            },
+            "resourceVersion": {
+              "description": "String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+              "type": "string"
+            },
+            "selfLink": {
+              "description": "selfLink is a URL representing this object. Populated by the system. Read-only.\n\nDEPRECATED Kubernetes will stop propagating this field in 1.20 release and the field is planned to be removed in 1.21 release.",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "operators.coreos.com",
+          "kind": "OperatorList",
+          "version": "v2alpha1"
+        }
+      ]
+    }
+  }
+}

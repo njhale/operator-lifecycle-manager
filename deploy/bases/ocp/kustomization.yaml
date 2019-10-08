@@ -1,0 +1,12 @@
+bases:
+- ../default
+
+patchesStrategicMerge:
+- crs.patch.yaml
+- deployments.patch.yaml
+
+resources:
+- ocp.yaml
+- rbac.yaml
+
+namespace: openshift-operator-lifecycle-manager

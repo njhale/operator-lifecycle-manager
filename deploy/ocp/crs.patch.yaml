@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: packageserver
+  labels:
+    olm.version: 0.12.0
+spec:
+  version: 0.12.0

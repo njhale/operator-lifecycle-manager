@@ -207,12 +207,13 @@ release:
 	$(MAKE) target=ocp ver=$(ver) package
 	rm -rf manifests
 	mkdir manifests
+	
 	cp -R deploy/ocp/manifests/$(ver)/. manifests
 	# requires gnu sed if on mac
-	find ./manifests -type f -exec sed -i "/^#/d" {} \;
-	find ./manifests -type f -exec sed -i "1{/---/d}" {} \;
+	# find ./manifests -type f -exec sed -i "/^#/d" {} \;
+	# find ./manifests -type f -exec sed -i "1{/---/d}" {} \;
 
-package: olmref=$(shell docker inspect --format='{{index .RepoDigests 0}}' quay.io/operator-framework/olm:$(ver))
+package: olmsha=$(shell docker inspect --format='{{index .RepoDigests 0}}' quay.io/operator-framework/olm:$(ver) | cut -d"@" -f2)
 package:
 ifndef target
 	$(error target is undefined)
@@ -220,10 +221,7 @@ endif
 ifndef ver
 	$(error ver is undefined)
 endif
-	yq w -i deploy/$(target)/values.yaml olm.image.ref $(olmref)
-	yq w -i deploy/$(target)/values.yaml catalog.image.ref $(olmref)
-	yq w -i deploy/$(target)/values.yaml package.image.ref $(olmref)
-	./scripts/package_release.sh $(ver) deploy/$(target)/manifests/$(ver) deploy/$(target)/values.yaml
+	./scripts/package_release.sh $(ver) $(target)
 	ln -sfFn ./$(ver) deploy/$(target)/manifests/latest
 ifeq ($(quickstart), true)
 	./scripts/package_quickstart.sh deploy/$(target)/manifests/$(ver) deploy/$(target)/quickstart/olm.yaml deploy/$(target)/quickstart/crds.yaml deploy/$(target)/quickstart/install.sh

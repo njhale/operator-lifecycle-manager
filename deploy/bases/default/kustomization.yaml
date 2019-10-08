@@ -1,0 +1,7 @@
+bases:
+- ../crds
+
+resources:
+- crs.yaml
+- deployments.yaml
+- rbac.yaml

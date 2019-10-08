@@ -1,0 +1,9 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: olm
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: operators

@@ -1,0 +1,67 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: olm-operators
+spec:
+  targetNamespaces:
+  - openshift-operator-lifecycle-manager
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: packageserver
+  labels:
+    olm.clusteroperator.name: operator-lifecycle-manager-packagerserver
+spec:
+  install:
+    spec:
+      deployments:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: packageserver
+                image: quay.io/operator-framework/olm:latest
+                imagePullPolicy: IfNotPresent
+                command:
+                - /bin/package-server
+                args:
+                - -v=4
+                - --secure-port
+                - "5443"
+                - --global-namespace
+                - openshift-marketplace
+                env:
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                ports:
+                - containerPort: 5443
+                livenessProbe:
+                  httpGet:
+                    scheme: HTTPS
+                    path: /healthz
+                    port: 5443
+                readinessProbe:
+                  httpGet:
+                    scheme: HTTPS
+                    path: /healthz
+                    port: 5443
+                terminationMessagePolicy: FallbackToLogsOnError
+              priorityClassName: system-cluster-critical
+              nodeSelector:
+                beta.kubernetes.io/os: linux
+                node-role.kubernetes.io/master: ""
+              tolerations:
+              - key: node-role.kubernetes.io/master
+                operator: Exists
+                effect: NoSchedule
+              - key: node.kubernetes.io/unreachable
+                operator: Exists
+                effect: NoExecute
+                tolerationSeconds: 120
+              - key: node.kubernetes.io/not-ready
+                operator: Exists
+                effect: NoExecute
+                tolerationSeconds: 120

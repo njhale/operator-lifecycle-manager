@@ -1,0 +1,115 @@
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: olm-operator-serviceaccount
+  namespace: olm
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: olm-operator
+  namespace: olm
+  labels:
+    app: olm-operator
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: olm-operator
+  template:
+    metadata:
+      labels:
+        app: olm-operator
+    spec:
+      serviceAccountName: olm-operator-serviceaccount
+      containers:
+      - name: olm-operator
+        image: quay.io/operator-framework/olm:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/olm
+        args:
+        - --namespace
+        - $(POD_NAMESPACE)
+        ports:
+        - containerPort: 8080
+          name: health
+        - containerPort: 8081
+          name: metrics
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+        terminationMessagePolicy: FallbackToLogsOnError
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: OPERATOR_NAME
+          value: olm-operator
+        resources:
+          requests:
+            cpu: 10m
+            memory: 80Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-operator
+  namespace: olm
+  labels:
+    app: catalog-operator
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog-operator
+  template:
+    metadata:
+      labels:
+        app: catalog-operator
+    spec:
+      serviceAccountName: olm-operator-serviceaccount
+      containers:
+      - name: catalog-operator
+        image: quay.io/operator-framework/olm:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/catalog
+        args:
+        - --namespace
+        - operators
+        ports:
+        - containerPort: 8080
+          name: health
+        - containerPort: 8081
+          name: metrics
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+        terminationMessagePolicy: FallbackToLogsOnError
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+          requests:
+            cpu: 10m
+            memory: 80Mi

@@ -1,5 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:controller:operator-lifecycle-manager
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+- nonResourceURLs: ["*"]
+  verbs: ["*"]
 ---
-# Source: olm/templates/0000_50_olm_09-aggregated.clusterrole.yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -32,3 +41,17 @@ rules:
 - apiGroups: ["packages.operators.coreos.com"]
   resources: ["packagemanifests", "packagemanifests/icon"]
   verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: olm-operator-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:controller:operator-lifecycle-manager
+subjects:
+- kind: ServiceAccount
+  name: olm-operator-serviceaccount
+  namespace: olm
+
