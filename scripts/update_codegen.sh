@@ -43,7 +43,7 @@ bash "${CODEGEN_PKG}/generate-internal-groups.sh" "client" \
   "${MODULE}/pkg/api/client" \
   "${MODULE}/pkg/api/apis" \
   "${MODULE}/pkg/api/apis" \
-  "operators:v1alpha1,v1" \
+  "operators:v1alpha1,v1,v2alpha1" \
   --output-base "${OUTPUT_BASE}" \
   --go-header-file "${SCRIPT_ROOT}/boilerplate.go.txt"
 

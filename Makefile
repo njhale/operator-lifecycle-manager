@@ -10,11 +10,14 @@ endif
 
 SHELL := /bin/bash
 PKG   := github.com/operator-framework/operator-lifecycle-manager
+OS := $(shell go env GOOS)
+ARCH := $(shell go env GOARCH)
 MOD_FLAGS := $(shell (go version | grep -q -E "1\.1[1-9]") && echo -mod=vendor)
 CMDS  := $(shell go list $(MOD_FLAGS) ./cmd/...)
 TCMDS := $(shell go list $(MOD_FLAGS) ./test/e2e/...)
 MOCKGEN := ./scripts/update_mockgen.sh
 CODEGEN := ./scripts/update_codegen.sh
+CRD_OUT := "./deploy/chart/templates/0000_50_olm_00-crds.yaml"
 IMAGE_REPO := quay.io/operator-framework/olm
 IMAGE_TAG ?= "dev"
 SPECIFIC_UNIT_TEST := $(if $(TEST),-run $(TEST),)
@@ -22,6 +25,13 @@ LOCAL_NAMESPACE := "olm"
 export GO111MODULE=on
 CONTROLLER_GEN := go run $(MOD_FLAGS) ./vendor/sigs.k8s.io/controller-tools/cmd/controller-gen
 YQ_INTERNAL := go run $(MOD_FLAGS) ./vendor/github.com/mikefarah/yq/v2/
+
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
 
 # ART builds are performed in dist-git, with content (but not commits) copied 
 # from the source repo. Thus at build time if your code is inspecting the local
@@ -33,14 +43,22 @@ YQ_INTERNAL := go run $(MOD_FLAGS) ./vendor/github.com/mikefarah/yq/v2/
 GIT_COMMIT := $(if $(SOURCE_GIT_COMMIT),$(SOURCE_GIT_COMMIT),$(shell git rev-parse HEAD))
 
 .PHONY: build test run clean vendor schema-check \
-	vendor-update coverage coverage-html e2e .FORCE
+	vendor-update coverage coverage-html e2e manifests \
+	controller-gen kubebuilder .FORCE
 
 all: test build
 
 test: clean cover.out
 
-unit:
-	go test $(MOD_FLAGS) $(SPECIFIC_UNIT_TEST) -v -race -tags=json1 -count=1 ./pkg/...
+unit: kubebuilder
+	$(KUBEBUILDER_ENV) go test $(MOD_FLAGS) $(SPECIFIC_UNIT_TEST) -v -race -tags=json1 -count=1 ./pkg/...
+
+# Install kubebuilder if not found
+kubebuilder:
+ifeq (, $(shell which kubebuilder))
+	@curl -sL https://go.kubebuilder.io/dl/2.0.1/$(OS)/$(ARCH) | tar -xz -C /tmp/
+KUBEBUILDER_ENV := KUBEBUILDER_ASSETS=/tmp/kubebuilder_2.0.1_$(OS)_$(ARCH)/bin
+endif
 
 schema-check:
 
@@ -146,11 +164,19 @@ clean:
 manifests: vendor
 	$(CONTROLLER_GEN) schemapatch:manifests=./deploy/chart/templates paths=./pkg/api/apis/operators/v1alpha1/... output:dir=./deploy/chart/templates
 	$(CONTROLLER_GEN) schemapatch:manifests=./deploy/chart/templates paths=./pkg/api/apis/operators/v1/... output:dir=./deploy/chart/templates
-	$(YQ_INTERNAL) w --inplace deploy/chart/templates/0000_50_olm_03-clusterserviceversion.crd.yaml spec.validation.openAPIV3Schema.properties.spec.properties.install.properties.spec.properties.deployments.items.properties.spec.properties.template.properties.metadata.x-kubernetes-preserve-unknown-fields true
+	$(YQ_INTERNAL) w --inplace deploy/chart/templates/0000_50_olm_00-clusterserviceversion.crd.yaml spec.validation.openAPIV3Schema.properties.spec.properties.install.properties.spec.properties.deployments.items.properties.spec.properties.template.properties.metadata.x-kubernetes-preserve-unknown-fields true
+	$(CONTROLLER_GEN) crd paths="./pkg/api/apis/operators/v2alpha1/..." output:crd:artifacts:config="config/crd/bases"
+	@:> $(CRD_OUT)
+	@for f in config/crd/bases/*; do cat "$${f}" >> $(CRD_OUT); done
+	@rm -rf config
 
-# Generate clients, listers, and informers
-codegen:
+codegen: codegen-v2 codegen-v1
+
+codegen-v1: vendor
 	$(CODEGEN)
+
+codegen-v2:
+	$(CONTROLLER_GEN) object:headerFile=boilerplate.go.txt paths="./pkg/api/apis/operators/v2alpha1/..."
 
 # Generate mock types.
 mockgen:
@@ -167,7 +193,6 @@ verify-mockgen: mockgen diff
 verify-manifests: manifests diff
 verify: verify-codegen verify-mockgen verify-manifests
 
-
 # before running release, bump the version in OLM_VERSION and push to master,
 # then tag those builds in quay with the version in OLM_VERSION
 release: ver=$(shell cat OLM_VERSION)
@@ -178,9 +203,6 @@ release:
 	rm -rf manifests
 	mkdir manifests
 	cp -R deploy/ocp/manifests/$(ver)/. manifests
-	# requires gnu sed if on mac
-	find ./manifests -type f -exec sed -i "/^#/d" {} \;
-	find ./manifests -type f -exec sed -i "1{/---/d}" {} \;
 
 verify-release: release diff
 

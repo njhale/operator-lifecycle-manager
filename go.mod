@@ -10,6 +10,7 @@ require (
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.4
 	github.com/golang/mock v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
@@ -18,6 +19,8 @@ require (
 	github.com/mikefarah/yq/v2 v2.4.1
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/munnerz/goautoneg v0.0.0-20190414153302-2ae31c8b6b30 // indirect
+	github.com/onsi/ginkgo v1.10.1
+	github.com/onsi/gomega v1.7.0
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
 	github.com/openshift/client-go v0.0.0-20190923180330-3b6373338c9b
 	github.com/operator-framework/operator-registry v1.5.6
@@ -26,6 +29,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/spf13/cobra v0.0.5
+	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
@@ -43,6 +47,7 @@ require (
 	k8s.io/kube-aggregator v0.0.0
 	k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d
 	k8s.io/kubernetes v1.16.0
+	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.2.4
 )
 
