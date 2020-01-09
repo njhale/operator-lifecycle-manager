@@ -4067,7 +4067,7 @@ func TestSyncOperatorGroups(t *testing.T) {
 				opGroupCSVs, err := op.client.OperatorsV1alpha1().ClusterServiceVersions(operatorNamespace).List(metav1.ListOptions{})
 				require.NoError(t, err)
 
-				for i, obj := range opGroupCSVs.Items {
+				for _, obj := range opGroupCSVs.Items {
 					if obj.Status.Phase == v1alpha1.CSVPhaseInstalling {
 						simulateSuccessfulRollout(&obj, op.opClient)
 					}
@@ -4078,32 +4078,18 @@ func TestSyncOperatorGroups(t *testing.T) {
 					if !tt.ignoreCopyError {
 						require.NoError(t, err, "%#v", obj)
 					}
-
-					if i == 0 {
-						err = wait.PollImmediate(1*time.Millisecond, 10*time.Second, func() (bool, error) {
-							for namespace, objects := range tt.final.objects {
-								if err := RequireObjectsInCache(t, op.lister, namespace, objects, false); err != nil {
-									return false, nil
-								}
-							}
-							return true, nil
-						})
-						require.NoError(t, err)
-					}
-
-					if i == 16 {
-						err = wait.PollImmediate(1*time.Millisecond, 10*time.Second, func() (bool, error) {
-							for namespace, objects := range tt.final.objects {
-								if err := RequireObjectsInCache(t, op.lister, namespace, objects, true); err != nil {
-									return false, nil
-								}
-							}
-							return true, nil
-						})
-						require.NoError(t, err)
-					}
 				}
 			}
+
+			err = wait.PollImmediate(1*time.Millisecond, 10*time.Second, func() (bool, error) {
+				for namespace, objects := range tt.final.objects {
+					if err := RequireObjectsInCache(t, op.lister, namespace, objects, true); err != nil {
+						return false, nil
+					}
+				}
+				return true, nil
+			})
+			require.NoError(t, err)
 
 			operatorGroup, err := op.client.OperatorsV1().OperatorGroups(tt.initial.operatorGroup.GetNamespace()).Get(tt.initial.operatorGroup.GetName(), metav1.GetOptions{})
 			require.NoError(t, err)
