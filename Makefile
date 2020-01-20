@@ -11,6 +11,7 @@ endif
 SHELL := /bin/bash
 PKG   := github.com/operator-framework/operator-lifecycle-manager
 MOD_FLAGS := $(shell (go version | grep -q -E "1\.1[1-9]") && echo -mod=vendor)
+CGO_FLAGS := $(shell if [[ "$${OSTYPE}" != "darwin"* ]]; then echo "CGO_ENABLED=1 CGO_DEBUG=1"; fi)
 CMDS  := $(shell go list $(MOD_FLAGS) ./cmd/...)
 TCMDS := $(shell go list $(MOD_FLAGS) ./test/e2e/...)
 MOCKGEN := ./scripts/update_mockgen.sh
@@ -73,11 +74,11 @@ build-linux: clean $(CMDS)
 build-wait: clean bin/wait
 
 bin/wait:
-	CGO_ENABLED=1 CGO_DEBUG=1 GOOS=linux GOARCH=386 go build -o $@ $(PKG)/test/e2e/wait
+	$(CGO_FLAGS) GOOS=linux GOARCH=386 go build -o $@ $(PKG)/test/e2e/wait
 
 $(CMDS): version_flags=-ldflags "-X $(PKG)/pkg/version.GitCommit=$(GIT_COMMIT) -X $(PKG)/pkg/version.OLMVersion=`cat OLM_VERSION`"
 $(CMDS):
-	CGO_ENABLED=1 CGO_DEBUG=1 $(arch_flags) go $(build_cmd) $(MOD_FLAGS) $(version_flags) -o bin/$(shell basename $@) $@
+	$(CGO_FLAGS) $(arch_flags) go $(build_cmd) $(MOD_FLAGS) $(version_flags) -o bin/$(shell basename $@) $@
 
 $(TCMDS):
 	CGO_ENABLED=0 go test -c $(BUILD_TAGS) $(MOD_FLAGS) -o bin/$(shell basename $@) $@
