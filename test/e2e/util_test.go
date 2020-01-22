@@ -27,7 +27,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/diff"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/storage/names"
+	"k8s.io/client-go/dynamic"
 	k8sscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
 
 	"github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 	"github.com/operator-framework/operator-lifecycle-manager/pkg/api/client"
@@ -103,6 +105,13 @@ func newCRClient(t *testing.T) versioned.Interface {
 	crclient, err := client.NewClient(*kubeConfigPath)
 	require.NoError(t, err)
 	return crclient
+}
+
+func newDynamicClient(t *testing.T, config *rest.Config) dynamic.Interface {
+	// TODO: impersonate ALM serviceaccount
+	dynamicClient, err := dynamic.NewForConfig(config)
+	require.NoError(t, err)
+	return dynamicClient
 }
 
 func newPMClient(t *testing.T) pmversioned.Interface {
