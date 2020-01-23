@@ -1,37 +1,40 @@
+---
+# Source: olm/templates/0000_50_olm_02-olm-operator.deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: catalog-operator
+  name: olm-operator
   namespace: openshift-operator-lifecycle-manager
   labels:
-    app: catalog-operator
+    app: olm-operator
 spec:
   strategy:
     type: RollingUpdate
   replicas: 1
   selector:
     matchLabels:
-      app: catalog-operator
+      app: olm-operator
   template:
     metadata:
       labels:
-        app: catalog-operator
+        app: olm-operator
     spec:
       serviceAccountName: olm-operator-serviceaccount
       priorityClassName: "system-cluster-critical"
       containers:
-        - name: catalog-operator
+        - name: olm-operator
           command:
-          - /bin/catalog
+          - /bin/olm
           args:
-          - '-namespace'
-          - openshift-marketplace
-          - -configmapServerImage=quay.io/operator-framework/configmap-operator-registry:latest
-          - -writeStatusName
-          - operator-lifecycle-manager-catalog
-          - -tls-cert
+          - --namespace
+          - $(OPERATOR_NAMESPACE)
+          - --writeStatusName
+          - operator-lifecycle-manager
+          - --writePackageServerStatusName
+          - operator-lifecycle-manager-packageserver
+          - --tls-cert
           - /var/run/secrets/serving-cert/tls.crt
-          - -tls-key
+          - --tls-key
           - /var/run/secrets/serving-cert/tls.key
           image: quay.io/operator-framework/olm@sha256:73d60e4f2adbc70ed8df93245fb2d83c9e0062489a22110d897b83c21918e101
           imagePullPolicy: IfNotPresent
@@ -50,14 +53,18 @@ spec:
               port: 8080
           terminationMessagePolicy: FallbackToLogsOnError
           env:
-          
+          - name: OPERATOR_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: OPERATOR_NAME
+            value: olm-operator
           - name: RELEASE_VERSION
             value: "0.0.1-snapshot"
-          
           resources:
             requests:
               cpu: 10m
-              memory: 80Mi
+              memory: 160Mi
             
           
           volumeMounts:
@@ -68,7 +75,7 @@ spec:
       volumes:
       - name: serving-cert
         secret:
-          secretName: catalog-operator-serving-cert
+          secretName: olm-operator-serving-cert
       
       nodeSelector:
         beta.kubernetes.io/os: linux
