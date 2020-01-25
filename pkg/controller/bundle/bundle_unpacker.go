@@ -54,9 +54,9 @@ func (c *ConfigMapUnpacker) job(cmRef *corev1.ObjectReference, bundlePath string
 					RestartPolicy: corev1.RestartPolicyOnFailure,
 					Containers: []corev1.Container{
 						{
-							Name:    cmRef.Name,
-							Image:   bundlePath,
-							Command: []string{"/injected/opm", "alpha", "bundle", "extract", "-n", cmRef.Namespace, "-c", cmRef.Name},
+							Name:    "extract",
+							Image:   c.opmImage,
+							Command: []string{"opm", "alpha", "bundle", "extract", "-m", "/bundle/", "-n", cmRef.Namespace, "-c", cmRef.Name},
 							Env: []corev1.EnvVar{
 								{
 									Name:  configmap.EnvContainerImage,
@@ -65,28 +65,49 @@ func (c *ConfigMapUnpacker) job(cmRef *corev1.ObjectReference, bundlePath string
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
-									Name:      "copydir",
-									MountPath: "/injected",
+									Name:      "bundle",
+									MountPath: "/bundle",
 								},
 							},
 						},
 					},
 					InitContainers: []corev1.Container{
 						{
-							Name:    "copy-binary",
-							Image:   c.copyImage,
-							Command: []string{"/bin/cp", "/bin/opm", "/copy-dest"},
+							Name:    "tools",
+							Image:   c.opmImage,
+							Command: []string{"/bin/cp", "-Rv", "/bin", "/tools"},
 							VolumeMounts: []corev1.VolumeMount{
 								{
-									Name:      "copydir",
-									MountPath: "/copy-dest",
+									Name:      "tools",
+									MountPath: "/tools", // Copy all the tooling over so the pull container can run a no-op
+								},
+							},
+						},
+						{
+							Name:    "pull",
+							Image:   bundlePath,
+							Command: []string{"/tools/bin/cp", "-Rv", "/manifests", "/metadata", "/bundle"}, // Copy bundle data to mount dir
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "bundle",
+									MountPath: "/bundle", // Copy everything from the bundle image
+								},
+								{
+									Name:      "tools",
+									MountPath: "/tools",
 								},
 							},
 						},
 					},
 					Volumes: []corev1.Volume{
 						{
-							Name: "copydir",
+							Name: "bundle",
+							VolumeSource: corev1.VolumeSource{
+								EmptyDir: &corev1.EmptyDirVolumeSource{},
+							},
+						},
+						{
+							Name: "tools",
 							VolumeSource: corev1.VolumeSource{
 								EmptyDir: &corev1.EmptyDirVolumeSource{},
 							},
@@ -110,7 +131,7 @@ type Unpacker interface {
 }
 
 type ConfigMapUnpacker struct {
-	copyImage  string
+	opmImage   string
 	client     kubernetes.Interface
 	csLister   listersoperatorsv1alpha1.CatalogSourceLister
 	cmLister   listerscorev1.ConfigMapLister
@@ -136,9 +157,9 @@ func NewConfigmapUnpacker(options ...ConfigMapUnpackerOption) (*ConfigMapUnpacke
 	return unpacker, nil
 }
 
-func WithCopyImage(copyImage string) ConfigMapUnpackerOption {
+func WithOPMImage(opmImage string) ConfigMapUnpackerOption {
 	return func(unpacker *ConfigMapUnpacker) {
-		unpacker.copyImage = copyImage
+		unpacker.opmImage = opmImage
 	}
 }
 
@@ -192,7 +213,7 @@ func (c *ConfigMapUnpacker) apply(options ...ConfigMapUnpackerOption) {
 
 func (c *ConfigMapUnpacker) validate() (err error) {
 	switch {
-	case c.copyImage == "":
+	case c.opmImage == "":
 		err = fmt.Errorf("no copy image given")
 	case c.client == nil:
 		err = fmt.Errorf("client is nil")
