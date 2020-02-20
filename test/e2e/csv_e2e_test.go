@@ -16,6 +16,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
 	apiregistrationv1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
@@ -3319,4 +3320,82 @@ func TestCSVStatusInvalidCSV(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Contains(t, fetchedCSV.Status.RequirementStatus, notServedStatus)
+}
+
+func TestAPIServiceInstallWithBadDiscovery(t *testing.T) {
+	c := newKubeClient(t)
+
+	ns := &corev1.Namespace{}
+	ns.SetName(genName("ns-"))
+	_, err := c.KubernetesInterface().CoreV1().Namespaces().Create(ns)
+	require.NoError(t, err)
+
+	deleteOpts := &metav1.DeleteOptions{}
+	defer func() {
+		require.NoError(t, c.KubernetesInterface().CoreV1().Namespaces().Delete(ns.GetName(), deleteOpts))
+	}()
+
+	name := "bad"
+	badDeployment := &appsv1.Deployment{
+		// Spec: newNginxDeployment(name),
+		Spec: newMockExtServerDeployment(name, "good.io/v1", []string{"dog"}),
+	}
+	badDeployment.SetNamespace(ns.GetName())
+	badDeployment.SetName(name)
+
+	port := int32(5443)
+	badService := &corev1.Service{
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Port:       port,
+					TargetPort: intstr.FromInt(5443),
+				},
+			},
+			Selector: badDeployment.Spec.Selector.MatchLabels,
+		},
+	}
+	badService.SetNamespace(badDeployment.GetNamespace())
+	badService.SetName(badDeployment.GetName())
+
+	var (
+		group   = "bad.io"
+		version = "v1"
+	)
+	badAPIService := &apiregistrationv1.APIService{
+		Spec: apiregistrationv1.APIServiceSpec{
+			Service: &apiregistrationv1.ServiceReference{
+				Namespace: badService.GetNamespace(),
+				Name:      badService.GetName(),
+				Port:      &port,
+			},
+			Group:                group,
+			Version:              version,
+			GroupPriorityMinimum: 100,
+			VersionPriority:      100,
+		},
+	}
+	badAPIService.SetName(fmt.Sprintf("%s.%s", version, group))
+
+	// Create resources for bad extension apiserver to break API discovery
+	_, err = c.KubernetesInterface().AppsV1().Deployments(badDeployment.GetNamespace()).Create(badDeployment)
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, c.KubernetesInterface().AppsV1().Deployments(badDeployment.GetNamespace()).Delete(badDeployment.GetName(), deleteOpts))
+	}()
+
+	_, err = c.KubernetesInterface().CoreV1().Services(badService.GetNamespace()).Create(badService)
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, c.KubernetesInterface().CoreV1().Services(badService.GetNamespace()).Delete(badService.GetName(), deleteOpts))
+	}()
+
+	_, err = c.ApiregistrationV1Interface().ApiregistrationV1().APIServices().Create(badAPIService)
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, c.ApiregistrationV1Interface().ApiregistrationV1().APIServices().Delete(badAPIService.GetName(), deleteOpts))
+	}()
+
+	fmt.Printf("zzzzZZZZZZZZZZZZZ")
+	time.Sleep(5 * time.Minute)
 }
