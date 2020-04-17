@@ -48,6 +48,9 @@ type OperatorFactory interface {
 	// NewOperator returns an Operator decorator that wraps the given external Operator representation.
 	// An error is returned if the decorator cannon be instantiated.
 	NewOperator(external *operatorsv2alpha1.Operator) (*Operator, error)
+
+	// NewPackageOperator returns an Operator decorator for a package.
+	NewPackageOperator(pkg string) (*Operator, error)
 }
 
 // schemedOperatorFactory is an OperatorFactory that instantiates Operator decorators with a shared scheme.
@@ -64,6 +67,13 @@ func (s *schemedOperatorFactory) NewOperator(external *operatorsv2alpha1.Operato
 		Operator: external.DeepCopy(),
 		scheme:   s.scheme,
 	}, nil
+}
+
+func (s *schemedOperatorFactory) NewPackageOperator(pkg string) (*Operator, error) {
+	o := &operatorsv2alpha1.Operator{}
+	o.SetName(pkg)
+
+	return s.NewOperator(o)
 }
 
 // NewSchemedOperatorFactory returns an OperatorFactory that supplies a scheme to all Operators it creates.
@@ -85,17 +95,17 @@ type Operator struct {
 }
 
 // ComponentLabelKey returns the operator's completed component label key
-func (a *Operator) ComponentLabelKey() (string, error) {
-	if a.GetName() == "" {
+func (o *Operator) ComponentLabelKey() (string, error) {
+	if o.GetName() == "" {
 		return "", fmt.Errorf(componentLabelKeyError, "empty name field")
 	}
 
-	return ComponentLabelKeyPrefix + a.GetName(), nil
+	return ComponentLabelKeyPrefix + o.GetName(), nil
 }
 
 // ComponentLabelSelector returns a LabelSelector that matches this operator's component label.
-func (a *Operator) ComponentLabelSelector() (*metav1.LabelSelector, error) {
-	key, err := a.ComponentLabelKey()
+func (o *Operator) ComponentLabelSelector() (*metav1.LabelSelector, error) {
+	key, err := o.ComponentLabelKey()
 	if err != nil {
 		return nil, err
 	}
@@ -112,8 +122,8 @@ func (a *Operator) ComponentLabelSelector() (*metav1.LabelSelector, error) {
 }
 
 // ComponentSelector returns a Selector that matches this operator's component label.
-func (a *Operator) ComponentSelector() (labels.Selector, error) {
-	labelSelector, err := a.ComponentLabelSelector()
+func (o *Operator) ComponentSelector() (labels.Selector, error) {
+	labelSelector, err := o.ComponentLabelSelector()
 	if err != nil {
 		return nil, err
 	}
@@ -122,13 +132,13 @@ func (a *Operator) ComponentSelector() (labels.Selector, error) {
 }
 
 // ResetComponents resets the component selector and references in the operator's status.
-func (a *Operator) ResetComponents() error {
-	labelSelector, err := a.ComponentLabelSelector()
+func (o *Operator) ResetComponents() error {
+	labelSelector, err := o.ComponentLabelSelector()
 	if err != nil {
 		return err
 	}
 
-	a.Status.Components = &operatorsv2alpha1.Components{
+	o.Status.Components = &operatorsv2alpha1.Components{
 		LabelSelector: labelSelector,
 	}
 
@@ -138,8 +148,8 @@ func (a *Operator) ResetComponents() error {
 // AddComponents adds the given components to the operator's status and returns an error
 // if a component isn't associated with the operator by label.
 // List type arguments are flattened to their nested elements before being added.
-func (a *Operator) AddComponents(components ...runtime.Object) error {
-	selector, err := a.ComponentSelector()
+func (o *Operator) AddComponents(components ...runtime.Object) error {
+	selector, err := o.ComponentSelector()
 	if err != nil {
 		return err
 	}
@@ -148,21 +158,21 @@ func (a *Operator) AddComponents(components ...runtime.Object) error {
 	for _, obj := range components {
 		// Unpack nested components
 		if nested, err := meta.ExtractList(obj); err == nil {
-			if err = a.AddComponents(nested...); err != nil {
+			if err = o.AddComponents(nested...); err != nil {
 				return err
 			}
 
 			continue
 		}
 
-		component, err := NewComponent(obj, a.scheme)
+		component, err := NewComponent(obj, o.scheme)
 		if err != nil {
 			return err
 		}
 		if matches, err := component.Matches(selector); err != nil {
 			return err
 		} else if !matches {
-			return fmt.Errorf("Cannot add component %s/%s/%s to Operator %s: component labels not selected by %s", component.GetKind(), component.GetNamespace(), component.GetName(), a.GetName(), selector.String())
+			return fmt.Errorf("Cannot add component %s/%s/%s to Operator %s: component labels not selected by %s", component.GetKind(), component.GetNamespace(), component.GetName(), o.GetName(), selector.String())
 		}
 
 		ref, err := component.Reference()
@@ -172,24 +182,24 @@ func (a *Operator) AddComponents(components ...runtime.Object) error {
 		refs = append(refs, *ref)
 	}
 
-	if a.Status.Components == nil {
-		if err := a.ResetComponents(); err != nil {
+	if o.Status.Components == nil {
+		if err := o.ResetComponents(); err != nil {
 			return err
 		}
 	}
 
-	a.Status.Components.Refs = append(a.Status.Components.Refs, refs...)
+	o.Status.Components.Refs = append(o.Status.Components.Refs, refs...)
 
 	return nil
 }
 
 // SetComponents sets the component references in the operator's status to the given components.
-func (a *Operator) SetComponents(components ...runtime.Object) error {
-	if err := a.ResetComponents(); err != nil {
+func (o *Operator) SetComponents(components ...runtime.Object) error {
+	if err := o.ResetComponents(); err != nil {
 		return err
 	}
 
-	return a.AddComponents(components...)
+	return o.AddComponents(components...)
 }
 
 type Component struct {

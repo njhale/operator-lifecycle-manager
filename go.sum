@@ -574,6 +574,7 @@ github.com/openshift/client-go v0.0.0-20200326155132-2a6cd50aedd0/go.mod h1:uUQ4
 github.com/openzipkin/zipkin-go v0.1.6/go.mod h1:QgAqvLzwWbR/WpD4A3cGpPtJrZXNIiJc5AZX7/PBEpw=
 github.com/operator-framework/api v0.1.1 h1:DbfxRJUPMQlQW6nbfoNzWLxv1rIv13Gt8GbsF2aglFk=
 github.com/operator-framework/api v0.1.1/go.mod h1:yzNYR7qyJqRGOOp+bT6Z/iYSbSPNxeh3Si93Gx/3OBY=
+github.com/operator-framework/api v0.2.0/go.mod h1:tOJUgbX7u1fBEEjt2cz3QjXzydBPJ19SwWwmAjiSz/s=
 github.com/operator-framework/api v0.3.0 h1:Ey7hpg/pwzIBkJtFICksbQLORLYmIjlPdGt+6GNeWT0=
 github.com/operator-framework/api v0.3.0/go.mod h1:tOJUgbX7u1fBEEjt2cz3QjXzydBPJ19SwWwmAjiSz/s=
 github.com/operator-framework/operator-registry v1.5.3/go.mod h1:agrQlkWOo1q8U1SAaLSS2WQ+Z9vswNT2M2HFib9iuLY=
