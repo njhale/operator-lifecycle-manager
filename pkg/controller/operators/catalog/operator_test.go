@@ -590,6 +590,77 @@ func TestExecutePlan(t *testing.T) {
 				},
 			},
 		},
+		{
+			testName: "ServiceAccountsOverlap",
+			in: withSteps(installPlan("p", namespace, v1alpha1.InstallPlanPhaseInstalling, "csv"),
+				[]*v1alpha1.Step{
+					{
+						Resolving: "csv",
+						Resource: v1alpha1.StepResource{
+							CatalogSource:          "catalog",
+							CatalogSourceNamespace: namespace,
+							Group:                  "operators.coreos.com",
+							Version:                "v1alpha1",
+							Kind:                   "ClusterServiceVersion",
+							Name:                   "csv",
+							Manifest: toManifest(t,
+								withInstallStrategy(csv("csv", namespace, nil, nil), v1alpha1.NamedInstallStrategy{
+									StrategyName: "foo",
+									StrategySpec: v1alpha1.StrategyDetailsDeployment{
+										Permissions: []v1alpha1.StrategyDeploymentPermissions{
+											{
+												ServiceAccountName: "sa",
+												Rules: []rbacv1.PolicyRule{
+													{
+														Verbs:     []string{rbacv1.VerbAll},
+														APIGroups: []string{rbacv1.APIGroupAll},
+													},
+												},
+											},
+										},
+									},
+								}),
+							),
+						},
+						Status: v1alpha1.StepStatusUnknown,
+					},
+					{
+						Resource: v1alpha1.StepResource{
+							CatalogSource:          "catalog",
+							CatalogSourceNamespace: namespace,
+							Group:                  "",
+							Version:                "v1",
+							Kind:                   "ServiceAccount",
+							Name:                   "sa",
+							Manifest:               toManifest(t, serviceAccount("sa", namespace, "new_name", nil)),
+						},
+						Status: v1alpha1.StepStatusUnknown,
+					},
+				},
+			),
+			want: []runtime.Object{
+				withInstallStrategy(csv("csv", namespace, nil, nil), v1alpha1.NamedInstallStrategy{
+					StrategyName: "foo",
+					StrategySpec: v1alpha1.StrategyDetailsDeployment{
+						Permissions: []v1alpha1.StrategyDeploymentPermissions{
+							{
+								ServiceAccountName: "sa",
+								Rules: []rbacv1.PolicyRule{
+									{
+										Verbs:     []string{rbacv1.VerbAll},
+										APIGroups: []string{rbacv1.APIGroupAll},
+									},
+								},
+							},
+						},
+					},
+				}),
+				modify(t, serviceAccount("sa", namespace, "", nil),
+					withOwner(csv("csv", namespace, nil, nil)),
+				),
+			},
+			err: nil,
+		},
 	}
 
 	for _, tt := range tests {
@@ -1331,6 +1402,11 @@ func installPlan(name, namespace string, phase v1alpha1.InstallPlanPhase, names 
 func withSteps(plan *v1alpha1.InstallPlan, steps []*v1alpha1.Step) *v1alpha1.InstallPlan {
 	plan.Status.Plan = steps
 	return plan
+}
+
+func withInstallStrategy(csv *v1alpha1.ClusterServiceVersion, strategy v1alpha1.NamedInstallStrategy) *v1alpha1.ClusterServiceVersion {
+	csv.Spec.InstallStrategy = strategy
+	return csv
 }
 
 func csv(name, namespace string, owned, required []string) *v1alpha1.ClusterServiceVersion {
